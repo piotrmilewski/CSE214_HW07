@@ -7,7 +7,7 @@ public class WebGraph{
     public static final int MAX_PAGES = 40;
     private LinkedList<WebPage> pages;
     private int[][] edges;
-    private int logicalSize = 0;
+    private static int logicalSize = 0;
 
     private WebGraph(LinkedList<WebPage> newPages, int[][] newEdges){
 	pages = newPages;
@@ -20,24 +20,26 @@ public class WebGraph{
 	BufferedReader reader = new BufferedReader(inStream);
 
 	LinkedList<WebPage> tempPages = new LinkedList<WebPage>();
-	WebPage newPage;
-	LinkedList<String> newKeywords = new LinkedList<String>();
+	WebPage newPage;	
 	String newUrl;
 	int index = 0;
 
 	String line = reader.readLine();
 	String[] words;
 	while (line != null){
+	    LinkedList<String> newKeywords = new LinkedList<String>();
 	    words = line.split(" ");
-	    newUrl = words[0];
-	    index++;
-	    for (int i = 1; i < words.length; i++){
+	    newUrl = words[4];
+	    for (int i = 5; i < words.length; i++){
 		newKeywords.add(words[i]);
 	    }
 	    newPage = new WebPage(newUrl, index, 0, newKeywords);
+	    //System.out.println(newPage);
 	    tempPages.add(newPage);
+	    //System.out.println(tempPages);
 	    line = reader.readLine();
 	    logicalSize++;
+	    index++;
 	}
 
 	fis = new FileInputStream(linksFile);
@@ -54,15 +56,14 @@ public class WebGraph{
 	    ListIterator<WebPage> litr = tempPages.listIterator();
 	    while (litr.hasNext()){
 		WebPage curr = litr.next();
-		if (curr.getUrl().equals(words[0]))
+		if (curr.getUrl().equals(words[4]))
 		    indexFrom = curr.getIndex();
 	    }
-
 	    litr = tempPages.listIterator();
 	    while (litr.hasNext()){
 		WebPage curr = litr.next();
-		if (curr.getUrl().equals(words[1]))
-		    indexFrom = curr.getIndex();
+		if (curr.getUrl().equals(words[5]))
+		    indexTo = curr.getIndex();
 	    }
 	    tempEdges[indexFrom][indexTo] = 1;
 	    line = reader.readLine();
@@ -76,7 +77,7 @@ public class WebGraph{
 	if (url == null){
 	    illegalArgumentExceptionHelper("url cannot be null");
 	}
-	ListIterator<WebPage> litr = tempPages.listIterator();
+	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
 	    if (url.equals(curr.getUrl())){
@@ -90,22 +91,22 @@ public class WebGraph{
     }
 
     public void addLink(String source, String destination) throws IllegalArgumentException{
-	if (sourse == null || destination == null)
+	if (source == null || destination == null)
 	    illegalArgumentExceptionHelper("urls cannot be null");
 	int indexFrom = -1;
 	int indexTo = -1;
 	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
-	    if (curr.getUrl().equals(words[0]))
+	    if (curr.getUrl().equals(source))
 		indexFrom = curr.getIndex();
 	}
 
-	litr = tempPages.listIterator();
+	litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
-	    if (curr.getUrl().equals(words[1]))
-		indexFrom = curr.getIndex();
+	    if (curr.getUrl().equals(destination))
+		indexTo = curr.getIndex();
 	}
 	if (indexFrom != -1 && indexTo != -1){
 	    edges[indexFrom][indexTo] = 1;
@@ -123,7 +124,7 @@ public class WebGraph{
 	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
-	    if (curr.getUrl().equals(words[0]))
+	    if (curr.getUrl().equals(url))
 		index = curr.getIndex();
 	}
 	if (index != -1){
@@ -140,7 +141,7 @@ public class WebGraph{
 	for (int j = 0; j < pages.size(); j++){ //CHECK LATER CAUSE I ADD
 	    for (int k = 0; k < pages.size(); k++)
 		edges[k][index+j] = edges[k][index+j+1];
-	    for (k = 0; k < pages.size()-1; k++)
+	    for (int k = 0; k < pages.size()-1; k++)
 		edges[index+j][k] = edges[index+j+1][k];
 	}
 	updatePageRanks();
@@ -155,14 +156,14 @@ public class WebGraph{
 	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
-	    if (curr.getUrl().equals(words[0]))
+	    if (curr.getUrl().equals(source))
 		indexFrom = curr.getIndex();
 	}
 
-	litr = tempPages.listIterator();
+	litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
-	    if (curr.getUrl().equals(words[1]))
+	    if (curr.getUrl().equals(destination))
 		indexFrom = curr.getIndex();
 	}
 	if (indexTo != -1 && indexFrom != -1)
@@ -194,16 +195,19 @@ public class WebGraph{
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
 	    output += curr;
+	    tempStorage = "";
 	    if (curr.getRank() > 0){
-		tempStorage = "";
 		for (int i = 0; i < logicalSize; i++){
-		    if (edges[curr.getIndex()][i] == 1)
+		    if (edges[curr.getIndex()][i] == 1){
+			if (i != 0 && tempStorage != "")
+			    tempStorage += ", ";
 			tempStorage += i;
-		    if (i != logicalSize-1)
-			tempStorage += ", ";
+			
+		    }
 		}
 	    }
-	    output = output.replace("***", tempStorage);
+	    tempStorage = String.format("%1s%-18s", "", tempStorage);
+	    output = output.replace("*******************", tempStorage);
 	}
 	System.out.println(output);
     }

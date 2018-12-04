@@ -55,7 +55,7 @@ public class WebPage{
     
     public String toString(){
 	String output = "";
-	output += String.format("%10s|%5s|%14s|***|%13s\n", index, url, rank, keywords);
+	output += String.format("%3s%2s|%1s%-21s|%3s%-4s|%-19s|%1s%20s\n", index, "", "", url, "", rank, "*******************", "", keywords);
 	return output;
     }
 }
