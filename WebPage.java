@@ -1,3 +1,13 @@
+/**
+ * The <code>WebPage</code> class represents a hyperlinked document that is used to store information such as
+ * the url, the index, the rank, and the keywords associated to the webpage.
+ *
+ *
+ * @author Piotr Milewski
+ *    email: piotr.milewski@stonybrook.edu
+ *    Stony Brook ID: 112291666
+ **/
+
 import java.util.LinkedList;
 
 public class WebPage{
@@ -5,7 +15,7 @@ public class WebPage{
     private String url;
     private int index;
     private int rank;
-    private LinkedList<String>keywords;
+    private LinkedList<String> keywords;
 
     public WebPage(){
 	url = "";

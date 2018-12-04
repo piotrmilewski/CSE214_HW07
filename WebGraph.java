@@ -1,6 +1,18 @@
+/**
+ * The <code>WebGraph</code> class organizes the WebPage objects as a directed graph. It contains a Collection
+ * of WebPages member variable called pages and a 2D array of ints member variable called links.
+ *
+ *
+ * @author Piotr Milewski
+ *    email: piotr.milewski@stonybrook.edu
+ *    Stony Brook ID: 112291666
+ **/
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Comparator;
+import java.util.Collections;
 
 public class WebGraph{
 
@@ -12,6 +24,10 @@ public class WebGraph{
     private WebGraph(LinkedList<WebPage> newPages, int[][] newEdges){
 	pages = newPages;
 	edges = newEdges;
+    }
+
+    public LinkedList<WebPage> getPages(){
+	return pages;
     }
     
     public static WebGraph buildFromFiles(String pagesFile, String linksFile) throws IllegalArgumentException, IOException{
@@ -120,6 +136,8 @@ public class WebGraph{
     public void removePage(String url){
 	if (url == null)
 	    illegalArgumentExceptionHelper("urls cannot be null");
+	if (pages.size() == 0)
+	    illegalArgumentExceptionHelper("Nothing to remove");
 	int index = -1;
 	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
@@ -129,10 +147,12 @@ public class WebGraph{
 	}
 	if (index != -1){
 	    pages.remove(index);
+	    System.out.println(url + " has been removed from the graph!");
 	    logicalSize--;
 	}
 	else{
 	    illegalArgumentExceptionHelper("url could not be found");
+	    return;
 	}
 
 	for (int i = index; i < pages.size(); i++)
@@ -164,7 +184,7 @@ public class WebGraph{
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
 	    if (curr.getUrl().equals(destination))
-		indexFrom = curr.getIndex();
+		indexTo = curr.getIndex();
 	}
 	if (indexTo != -1 && indexFrom != -1)
 	    edges[indexFrom][indexTo] = 0;
@@ -180,6 +200,7 @@ public class WebGraph{
 	    WebPage curr = litr.next();
 	    newRank = 0;
 	    for (int i = 0; i < logicalSize; i++){
+		System.out.println(curr.getIndex());
 		if (edges[i][curr.getIndex()] == 1)
 		    newRank++;
 	    }
@@ -187,23 +208,52 @@ public class WebGraph{
 	}
     }
 
+    public void search(String keyword) throws IllegalArgumentException{
+	String tempStorage = "";
+	LinkedList<WebPage> searched = new LinkedList<WebPage>();
+	ListIterator<WebPage> litr = pages.listIterator();
+	boolean invalidKeyword = false;
+	boolean found = false;
+	String output = "\nRank   PageRank    URL\n";
+	output += "---------------------------------------------\n";
+	while (litr.hasNext()){
+	    WebPage curr = litr.next();
+	    if (curr.getKeywords().indexOf(keyword) != -1){
+		invalidKeyword = true;
+		searched.add(curr);
+	    }
+	}
+	Collections.sort(searched, new KeywordComparator());
+
+	litr = searched.listIterator();
+	while (litr.hasNext()){
+	    WebPage curr = litr.next();
+	    int index = curr.getIndex();
+	    int rank = curr.getRank();
+	    String url = curr.getUrl();
+	    output += String.format("%3s%2s|%4s%-5s|%1s%-21s\n", index, "", "", rank, "", url);
+	}
+	if (invalidKeyword)
+	    System.out.println(output);
+	else
+	    illegalArgumentExceptionHelper("Keyword not found in the graph");
+    }
+
     public void printTable(){
 	String tempStorage = "";
-	String output = "Index     URL               PageRank  Links               Keywords\n";
+	String output = "\nIndex     URL               PageRank  Links               Keywords\n";
 	output += "------------------------------------------------------------------------------------------------------\n";
 	ListIterator<WebPage> litr = pages.listIterator();
 	while (litr.hasNext()){
 	    WebPage curr = litr.next();
 	    output += curr;
 	    tempStorage = "";
-	    if (curr.getRank() > 0){
-		for (int i = 0; i < logicalSize; i++){
-		    if (edges[curr.getIndex()][i] == 1){
-			if (i != 0 && tempStorage != "")
-			    tempStorage += ", ";
-			tempStorage += i;
+	    for (int i = 0; i < logicalSize; i++){
+		if (edges[curr.getIndex()][i] == 1){
+		    if (i != 0 && tempStorage != "")
+			tempStorage += ", ";
+		    tempStorage += i;
 			
-		    }
 		}
 	    }
 	    tempStorage = String.format("%1s%-18s", "", tempStorage);
@@ -217,7 +267,15 @@ public class WebGraph{
 	    throw new IllegalArgumentException(message);
 	}
 	catch (IllegalArgumentException iae){
-	    System.out.println(iae);
+	    System.out.println("\n" + message);
 	}
     }
 }
+/*
+  for (int i = 0; i < logicalSize; i++){
+  System.out.println();
+  for (int j = 0; j < logicalSize; j++){
+  System.out.print(edges[i][j] + " ");
+  }
+  }
+*/
